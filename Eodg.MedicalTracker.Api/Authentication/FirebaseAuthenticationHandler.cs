@@ -1,3 +1,4 @@
+using Eodg.MedicalTracker.Api.Exceptions;
 using FirebaseAdmin.Auth;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
@@ -32,10 +33,15 @@ namespace Eodg.MedicalTracker.Api.Authentication
 
                 if (!(bool)token.Claims["email_verified"])
                 {
-                    throw new Exception("Email address is not verified.");
+                    throw new UnverifiedAccountException();
                 }
             }
-            // TODO: Maybe handle exceptions more extensively???
+            catch (UnverifiedAccountException ex)
+            {
+                // TODO: Make it so that the client knows it is an email verification error...
+                Context.Response.StatusCode = 401;
+                return AuthenticateResult.Fail(ex);
+            }
             catch (Exception ex)
             {
                 Context.Response.StatusCode = 401;
@@ -52,7 +58,7 @@ namespace Eodg.MedicalTracker.Api.Authentication
             var claims = BuildClaims(token);
             var identity = new ClaimsIdentity(claims, Scheme.Name);
             var principal = new ClaimsPrincipal(identity);
-            
+
             return new AuthenticationTicket(principal, Scheme.Name);
         }
 

@@ -24,11 +24,11 @@ namespace Eodg.MedicalTracker.Api.Filters
             // Resolve services...
             var authorizationService = (IAuthorizationService)context.HttpContext.RequestServices.GetService(typeof(IAuthorizationService));
             var configuration = (IConfiguration)context.HttpContext.RequestServices.GetService(typeof(IConfiguration));
-            var ownableService = (IOwnableResourceService)context.HttpContext.RequestServices.GetService(_resourceServicetype);
+            var ownableResourceService = (IOwnableResourceService)context.HttpContext.RequestServices.GetService(_resourceServicetype);
 
             // Get resource...
             var id = int.Parse(context.RouteData.Values[_routeKey].ToString());            
-            var resource = ownableService.Get(id);
+            var resource = ownableResourceService.Get(id);
 
             if (resource == null)
             {

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 namespace Eodg.MedicalTracker.Services
 {
     // TODO: We'll need some try/catch and custom exceptions...
+    // TODO: Actually use the DisplayName property
     public class MemberService : ResourceService, IMemberService
     {
         public MemberService(MedicalTrackerDbContext dbContext, IMapper mapper)
@@ -60,8 +61,8 @@ namespace Eodg.MedicalTracker.Services
         {
             var member = GenerateMember(firebaseId, email);
 
-            await DbContext.Members.AddAsync(member);
-            DbContext.SaveChanges();
+            DbContext.Members.Add(member);
+            await DbContext.SaveChangesAsync();
 
             return Mapper.Map<Member>(member);
         }
@@ -150,6 +151,8 @@ namespace Eodg.MedicalTracker.Services
             await DeleteAsync(member);
         }
 
+        #region Helper Methods
+
         private Domain.Member GetDomainMember(int id)
         {
             return DbContext.Members.Find(id);
@@ -226,5 +229,7 @@ namespace Eodg.MedicalTracker.Services
 
             return member;
         }
+
+        #endregion
     }
 }

@@ -3,9 +3,11 @@ using AutoMapper;
 using Eodg.MedicalTracker.Domain;
 using Eodg.MedicalTracker.Dto;
 using Eodg.MedicalTracker.Persistence;
+using Eodg.MedicalTracker.Services.Exceptions;
 using Eodg.MedicalTracker.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,25 +15,31 @@ using System.Threading.Tasks;
 namespace Eodg.MedicalTracker.Services
 {
     // TODO: We'll need some try/catch and custom exceptions...
+    // TODO: Sub-TODO... Make sure all methods are doing what they can to minimize DB calls (use better helpers)
+    // TODO: Look into logging all of the queries...
     public class ProfileService : ResourceService, IProfileService, IOwnableResourceService
     {
         public ProfileService(MedicalTrackerDbContext dbContext, IMapper mapper)
             : base(dbContext, mapper)
         {
-            
+
         }
 
         public Dto.Profile Get(int profileId)
         {
-            var profile = GetPopulatedProfiles().SingleOrDefault(p => p.Id == profileId);
+            Domain.Profile profile;
+
+            try
+            {
+                profile = GetPopulatedProfiles().Single(p => p.Id == profileId);
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new ResourceNotFoundException($"Profile not found. Id: {profileId}", ex);
+            }
 
             return Mapper.Map<Dto.Profile>(profile);
         }
-
-        IOwnableResource IOwnableResourceService.Get(int profileId)
-        {
-            return Get(profileId);
-        } 
 
         public async Task<Dto.Profile> GetAsync(int profileId)
         {
@@ -40,10 +48,15 @@ namespace Eodg.MedicalTracker.Services
             return Mapper.Map<Dto.Profile>(profile);
         }
 
+        IOwnableResource IOwnableResourceService.Get(int profileId)
+        {
+            return Get(profileId);
+        }
+
         async Task<IOwnableResource> IOwnableResourceService.GetAsync(int profileId)
         {
             return await GetAsync(profileId);
-        } 
+        }
 
         public IEnumerable<Dto.Profile> Get(
             string firebaseId,
@@ -126,7 +139,6 @@ namespace Eodg.MedicalTracker.Services
 
             profile.AddTimestamp(firebaseId);
 
-            // TODO: We'll need to check this out...
             DbContext.Update(profile);
             DbContext.SaveChanges();
 
@@ -139,14 +151,13 @@ namespace Eodg.MedicalTracker.Services
             string displayName,
             string notes)
         {
-            var profile = await GetPopulatedProfiles().SingleOrDefaultAsync(p=> p.Id == profileId);
+            var profile = await GetPopulatedProfiles().SingleOrDefaultAsync(p => p.Id == profileId);
 
             profile.DisplayName = displayName;
             profile.Notes = notes;
 
             profile.AddTimestamp(firebaseId);
 
-            // TODO: We'll need to check this out...
             DbContext.Update(profile);
             await DbContext.SaveChangesAsync();
 
@@ -275,11 +286,11 @@ namespace Eodg.MedicalTracker.Services
 
         #endregion
 
-        #region Helpers
+        #region Helper Methods
 
         private IIncludableQueryable<Domain.Profile, Domain.Member> GetPopulatedProfiles()
         {
-            return 
+            return
                 DbContext
                     .Profiles
                     .Include(p => p.MemberProfileRelationships)
