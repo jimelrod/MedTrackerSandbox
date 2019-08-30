@@ -17,7 +17,7 @@ namespace Eodg.MedicalTracker.Services
     // TODO: We'll need some try/catch and custom exceptions...
     // TODO: Sub-TODO... Make sure all methods are doing what they can to minimize DB calls (use better helpers)
     // TODO: Look into logging all of the queries...
-    public class ProfileService : ResourceService, IProfileService, IOwnableResourceService
+    public class ProfileService : ResourceService<Domain.Profile>, IProfileService, IOwnableResourceService
     {
         public ProfileService(MedicalTrackerDbContext dbContext, IMapper mapper)
             : base(dbContext, mapper)
@@ -27,16 +27,7 @@ namespace Eodg.MedicalTracker.Services
 
         public Dto.Profile Get(int profileId)
         {
-            Domain.Profile profile;
-
-            try
-            {
-                profile = GetPopulatedProfiles().Single(p => p.Id == profileId);
-            }
-            catch (InvalidOperationException ex)
-            {
-                throw new ResourceNotFoundException($"Profile not found. Id: {profileId}", ex);
-            }
+            var profile = GetEntity(profileId);
 
             return Mapper.Map<Dto.Profile>(profile);
         }

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Eodg.MedicalTracker.Domain
 {
-    public class Profile : IActivable, ITimestampable
+    public class Profile : IEntity, IActivable, ITimestampable
     {
         public Profile()
         {

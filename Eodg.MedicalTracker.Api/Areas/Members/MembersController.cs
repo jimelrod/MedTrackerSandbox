@@ -27,7 +27,7 @@ namespace Eodg.MedicalTracker.Api.Areas.Members
         [HttpPost]
         public async Task<IActionResult> Post()
         {
-            var member = await _memberService.AddAsync(UserFirebaseId, UserEmail);
+            var member = await _memberService.AddAsync(UserFirebaseId, UserEmail, UserDisplayName);
 
             return Ok(member);
         }

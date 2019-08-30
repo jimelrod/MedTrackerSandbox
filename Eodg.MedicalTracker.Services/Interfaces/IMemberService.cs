@@ -4,15 +4,21 @@ using Eodg.MedicalTracker.Dto;
 namespace Eodg.MedicalTracker.Services.Interfaces
 {
     public interface IMemberService
-    {        
+    {
         Member Get(int id);
         Task<Member> GetAsync(int id);
 
         Member Get(string firebaseId);
         Task<Member> GetAsync(string firebaseId);
 
-        Member Add(string firebaseId, string email);
-        Task<Member> AddAsync(string firebaseId, string email);
+        Member Add(string firebaseId, string email, string displayName = null);
+        Task<Member> AddAsync(string firebaseId, string email, string displayName = null);
+
+        Member Update(string firebaseId, string email, string displayName = null);
+        Task<Member> UpdateAsync(string firebaseId, string email, string displayName = null);
+
+        Member Update(int id, string email, string displayName);
+        Task<Member> UpdateAsync(int id, string email, string displayName);
 
         Member Deactivate(int id);
         Task<Member> DeactivateAsync(int id);

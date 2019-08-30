@@ -8,6 +8,7 @@ namespace Eodg.MedicalTracker.Api.Controllers
     {
         private string _userFirebaseId;
         private string _userEmail;
+        private string _userDisplayName;
 
         protected string UserFirebaseId
         {
@@ -31,6 +32,19 @@ namespace Eodg.MedicalTracker.Api.Controllers
                 }
 
                 return _userEmail;
+            }
+        }
+
+        protected string UserDisplayName
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_userDisplayName))
+                {
+                    _userDisplayName = User.FindFirst(ClaimTypes.Email).Value;
+                }
+
+                return _userDisplayName;
             }
         }
     }

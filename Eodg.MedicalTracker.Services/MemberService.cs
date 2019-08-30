@@ -2,16 +2,13 @@ using AutoMapper;
 using Eodg.MedicalTracker.Dto;
 using Eodg.MedicalTracker.Persistence;
 using Eodg.MedicalTracker.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Eodg.MedicalTracker.Services
 {
     // TODO: We'll need some try/catch and custom exceptions...
-    // TODO: Actually use the DisplayName property
-    public class MemberService : ResourceService, IMemberService
+    public class MemberService : ResourceService<Domain.Member>, IMemberService
     {
         public MemberService(MedicalTrackerDbContext dbContext, IMapper mapper)
             : base(dbContext, mapper)
@@ -21,200 +18,221 @@ namespace Eodg.MedicalTracker.Services
 
         public Member Get(int id)
         {
-            var member = GetDomainMember(id);
+            var member = GetEntity(id);
 
             return Mapper.Map<Member>(member);
         }
 
         public async Task<Member> GetAsync(int id)
         {
-            var member = await GetDomainMemberAsync(id);
+            var member = await GetEntityAsync(id);
 
             return Mapper.Map<Member>(member);
         }
 
         public Member Get(string firebaseId)
         {
-            var member = GetDomainMember(firebaseId);
+            var member = GetEntity(m => m.FirebaseId == firebaseId);
 
             return Mapper.Map<Member>(member);
         }
 
         public async Task<Member> GetAsync(string firebaseId)
         {
-            var member = await GetDomainMemberAsync(firebaseId);
+            var member = await GetEntityAsync(m => m.FirebaseId == firebaseId);
 
             return Mapper.Map<Member>(member);
         }
 
-        public Member Add(string firebaseId, string email)
+        public Member Add(string firebaseId, string email, string displayName)
         {
-            var member = GenerateMember(firebaseId, email);
+            var member = GenerateMember(firebaseId, email, displayName);
 
-            DbContext.Members.Add(member);
-            DbContext.SaveChanges();
+            member = AddEntity(member);
 
             return Mapper.Map<Member>(member);
         }
 
-        public async Task<Member> AddAsync(string firebaseId, string email)
+        public async Task<Member> AddAsync(string firebaseId, string email, string displayName)
         {
-            var member = GenerateMember(firebaseId, email);
+            var member = GenerateMember(firebaseId, email, displayName);
 
-            DbContext.Members.Add(member);
-            await DbContext.SaveChangesAsync();
+            member = await AddEntityAsync(member);
+
+            return Mapper.Map<Member>(member);
+        }
+
+        public Member Update(string firebaseId, string email, string displayName)
+        {
+            var member = GetEntity(m => m.FirebaseId == firebaseId);
+
+            member.Email = email;
+            member.DisplayName = displayName;
+            member.ModifiedOn = DateTime.Now;
+
+            member = UpdateEntity(member);
+
+            return Mapper.Map<Member>(member);
+
+        }
+
+        public async Task<Member> UpdateAsync(string firebaseId, string email, string displayName)
+        {
+            var member = await GetEntityAsync(m => m.FirebaseId == firebaseId);
+
+            member.Email = email;
+            member.DisplayName = displayName;
+            member.ModifiedOn = DateTime.Now;
+
+            member = await UpdateEntityAsync(member);
+
+            return Mapper.Map<Member>(member);
+        }
+
+        public Member Update(int id, string email, string displayName)
+        {
+            var member = GetEntity(id);
+
+            member.Email = email;
+            member.DisplayName = displayName;
+            member.ModifiedOn = DateTime.Now;
+
+            member = UpdateEntity(member);
+
+            return Mapper.Map<Member>(member);
+        }
+
+        public async Task<Member> UpdateAsync(int id, string email, string displayName)
+        {
+            var member = await GetEntityAsync(id);
+
+            member.Email = email;
+            member.DisplayName = displayName;
+
+            member = await UpdateEntityAsync(member);
 
             return Mapper.Map<Member>(member);
         }
 
         public Member Deactivate(int id)
         {
-            var member = GetDomainMember(id);
+            var member = GetEntity(id);
 
-            return SetActivation(member, false);
+            member = SetActivation(member, false);
+
+            return Mapper.Map<Member>(member);
         }
 
         public async Task<Member> DeactivateAsync(int id)
         {
-            var member = await GetDomainMemberAsync(id);
+            var member = await GetEntityAsync(id);
 
-            return await SetActivationAsync(member, false);
+            member = await SetActivationAsync(member, false);
+
+            return Mapper.Map<Member>(member);
         }
 
         public Member Deactivate(string firebaseId)
         {
-            var member = GetDomainMember(firebaseId);
+            var member = GetEntity(m => m.FirebaseId == firebaseId);
 
-            return SetActivation(member, false);
+            member = SetActivation(member, false);
+
+            return Mapper.Map<Member>(member);
         }
 
         public async Task<Member> DeactivateAsync(string firebaseId)
         {
-            var member = await GetDomainMemberAsync(firebaseId);
+            var member = await GetEntityAsync(m => m.FirebaseId == firebaseId);
 
-            return await SetActivationAsync(member, false);
+            member = await SetActivationAsync(member, false);
+
+            return Mapper.Map<Member>(member);
         }
 
         public Member Activate(int id)
         {
-            var member = GetDomainMember(id);
+            var member = GetEntity(id);
 
-            return SetActivation(member, true);
+            member = SetActivation(member, true);
+
+            return Mapper.Map<Member>(member);
         }
 
         public async Task<Member> ActivateAsync(int id)
         {
-            var member = await GetDomainMemberAsync(id);
+            var member = await GetEntityAsync(id);
 
-            return await SetActivationAsync(member, true);
+            member = await SetActivationAsync(member, true);
+
+            return Mapper.Map<Member>(member);
         }
 
         public Member Activate(string firebaseId)
         {
-            var member = GetDomainMember(firebaseId);
+            var member = GetEntity(m => m.FirebaseId == firebaseId);
 
-            return SetActivation(member, true);
+            member = SetActivation(member, true);
+
+            return Mapper.Map<Member>(member);
         }
 
         public async Task<Member> ActivateAsync(string firebaseId)
         {
-            var member = await GetDomainMemberAsync(firebaseId);
+            var member = await GetEntityAsync(m => m.FirebaseId == firebaseId);
 
-            return await SetActivationAsync(member, true);
+            member = await SetActivationAsync(member, true);
+
+            return Mapper.Map<Member>(member);
         }
 
         public void Delete(int id)
         {
-            var member = GetDomainMember(id);
+            var member = GetEntity(id);
 
-            Delete(member);
+            DeleteEntity(member);
         }
 
         public async Task DeleteAsync(int id)
         {
-            var member = await GetDomainMemberAsync(id);
+            var member = await GetEntityAsync(id);
 
-            await DeleteAsync(member);
+            await DeleteEntityAsync(member);
         }
 
         public void Delete(string firebaseId)
         {
-            var member = GetDomainMember(firebaseId);
+            var member = GetEntity(m => m.FirebaseId == firebaseId);
 
-            Delete(member);
+            DeleteEntity(member);
         }
 
         public async Task DeleteAsync(string firebaseId)
         {
-            var member = await GetDomainMemberAsync(firebaseId);
+            var member = await GetEntityAsync(m => m.FirebaseId == firebaseId);
 
-            await DeleteAsync(member);
+            await DeleteEntityAsync(member);
         }
 
         #region Helper Methods
 
-        private Domain.Member GetDomainMember(int id)
-        {
-            return DbContext.Members.Find(id);
-        }
-
-        private async Task<Domain.Member> GetDomainMemberAsync(int id)
-        {
-            return await DbContext.Members.FindAsync(id);
-        }
-
-        private Domain.Member GetDomainMember(string firebaseId)
-        {
-            return
-                DbContext
-                    .Members
-                    .SingleOrDefault(m => m.FirebaseId == firebaseId);
-        }
-
-        private async Task<Domain.Member> GetDomainMemberAsync(string firebaseId)
-        {
-            return
-                await
-                    DbContext
-                        .Members
-                        .SingleOrDefaultAsync(m => m.FirebaseId == firebaseId);
-        }
-
-        private Member SetActivation(Domain.Member member, bool isActive)
+        private Domain.Member SetActivation(Domain.Member member, bool isActive)
         {
             member.IsActive = isActive;
             member.ModifiedOn = DateTime.Now;
 
-            DbContext.Update(member);
-            DbContext.SaveChanges();
-
-            return Mapper.Map<Member>(member);
+            return UpdateEntity(member);
         }
 
-        private async Task<Member> SetActivationAsync(Domain.Member member, bool isActive)
+        private async Task<Domain.Member> SetActivationAsync(Domain.Member member, bool isActive)
         {
             member.IsActive = isActive;
             member.ModifiedOn = DateTime.Now;
 
-            DbContext.Update(member);
-            await DbContext.SaveChangesAsync();
-
-            return Mapper.Map<Member>(member);
+            return await UpdateEntityAsync(member);
         }
 
-        private void Delete(Domain.Member member)
-        {
-            DbContext.Remove(member);
-            DbContext.SaveChanges();
-        }
-
-        private async Task DeleteAsync(Domain.Member member)
-        {
-            DbContext.Remove(member);
-            await DbContext.SaveChangesAsync();
-        }
-
-        private static Domain.Member GenerateMember(string firebaseId, string email)
+        private static Domain.Member GenerateMember(string firebaseId, string email, string displayName)
         {
             var now = DateTime.Now;
 
@@ -222,6 +240,7 @@ namespace Eodg.MedicalTracker.Services
             {
                 FirebaseId = firebaseId,
                 Email = email,
+                DisplayName = displayName,
                 IsActive = true,
                 CreatedOn = now,
                 ModifiedOn = now

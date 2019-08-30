@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Eodg.MedicalTracker.Domain
 {
-    public partial class Member : IActivable
+    public partial class Member : IEntity, IActivable
     {
         public Member()
         {

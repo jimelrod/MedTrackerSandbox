@@ -10,13 +10,21 @@ namespace Eodg.MedicalTracker.Persistence.Configuration
         {
             builder
                 .HasKey(m => m.Id);
-            
+
             builder
                 .HasAlternateKey(m => m.FirebaseId);
 
             builder
                 .HasIndex(m => m.Email)
                 .IsUnique();
+
+            builder
+                .Property(m => m.FirebaseId)
+                .IsRequired();
+
+            builder
+                .Property(m => m.Email)
+                .IsRequired();
 
             builder
                 .Property(m => m.DisplayName)
