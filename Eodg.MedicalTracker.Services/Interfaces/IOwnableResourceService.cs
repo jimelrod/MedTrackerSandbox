@@ -1,11 +1,10 @@
 using Eodg.MedicalTracker.Dto;
-using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Eodg.MedicalTracker.Services.Interfaces
 {
     public interface IOwnableResourceService
     {
-        IOwnableResource Get(int id);
-        Task<IOwnableResource> GetAsync(int id);
+        IEnumerable<Member> GetOwners(int id);
     }
 }

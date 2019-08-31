@@ -1,7 +1,6 @@
 // using Eodg.MedicalTracker.Domain;
 using AutoMapper;
 using Eodg.MedicalTracker.Domain;
-using Eodg.MedicalTracker.Dto;
 using Eodg.MedicalTracker.Persistence;
 using Eodg.MedicalTracker.Services.Exceptions;
 using Eodg.MedicalTracker.Services.Interfaces;
@@ -37,16 +36,6 @@ namespace Eodg.MedicalTracker.Services
             var profile = await GetPopulatedProfiles().SingleOrDefaultAsync(p => p.Id == profileId);
 
             return Mapper.Map<Dto.Profile>(profile);
-        }
-
-        IOwnableResource IOwnableResourceService.Get(int profileId)
-        {
-            return Get(profileId);
-        }
-
-        async Task<IOwnableResource> IOwnableResourceService.GetAsync(int profileId)
-        {
-            return await GetAsync(profileId);
         }
 
         public IEnumerable<Dto.Profile> Get(
@@ -85,6 +74,29 @@ namespace Eodg.MedicalTracker.Services
             var profileList = await domainProfiles.ToListAsync();
 
             return Mapper.Map<IEnumerable<Dto.Profile>>(profileList);
+        }
+
+        public IEnumerable<Dto.Member> GetOwners(int id)
+        {
+            Domain.Profile profile;
+
+            try
+            {
+                profile =
+                    DbContext
+                        .Profiles
+                        .Include(p => p.MemberProfileRelationships)
+                            .ThenInclude(mp => mp.Member)
+                        .Single(p => p.Id == id);
+            }
+            catch (InvalidOperationException ex)
+            {
+                var message = $"{typeof(Dto.Member)} not found. Id: {id}. See InnerException for details...";
+
+                throw new ResourceNotFoundException(message, ex);
+            }
+
+            return profile.MemberProfileRelationships.Select(mp => Mapper.Map<Dto.Member>(mp.Member));
         }
 
         public Dto.Profile Add(
@@ -279,6 +291,7 @@ namespace Eodg.MedicalTracker.Services
 
         #region Helper Methods
 
+        // TODO: This should either be removed or not used as much...
         private IIncludableQueryable<Domain.Profile, Domain.Member> GetPopulatedProfiles()
         {
             return

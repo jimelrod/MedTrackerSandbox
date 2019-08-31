@@ -1,9 +1,12 @@
+using Eodg.MedicalTracker.Api.Authorization;
+using Eodg.MedicalTracker.Services.Exceptions;
 using Eodg.MedicalTracker.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.Configuration;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Eodg.MedicalTracker.Api.Filters
@@ -23,26 +26,33 @@ namespace Eodg.MedicalTracker.Api.Filters
         {
             // Resolve services...
             var authorizationService = (IAuthorizationService)context.HttpContext.RequestServices.GetService(typeof(IAuthorizationService));
-            var configuration = (IConfiguration)context.HttpContext.RequestServices.GetService(typeof(IConfiguration));
             var ownableResourceService = (IOwnableResourceService)context.HttpContext.RequestServices.GetService(_resourceServicetype);
 
-            // Get resource...
-            var id = int.Parse(context.RouteData.Values[_routeKey].ToString());            
-            var resource = ownableResourceService.Get(id);
+            var id = int.Parse(context.RouteData.Values[_routeKey].ToString());
 
-            if (resource == null)
+            // Get owners...
+            IEnumerable<string> ownersFirebaseIds;
+
+            try
+            {
+                ownersFirebaseIds =
+                    ownableResourceService
+                        .GetOwners(id)
+                        .Select(member => member.FirebaseId);
+            }
+            catch (ResourceNotFoundException)
             {
                 context.Result = new NotFoundResult();
                 return;
             }
 
             // Authorize resource access...
-            var authorizationTask = Task.Run(async () => 
+            var authorizationTask = Task.Run(async () =>
             {
                 var user = context.HttpContext.User;
-                var policyName = configuration["Authorization:PolicyName"];
+                var requirement = new MemberSpecificAuthorizationRequirement(ownersFirebaseIds);
 
-                return await authorizationService.AuthorizeAsync(user, resource, policyName); 
+                return await authorizationService.AuthorizeAsync(user, null, requirement);
             });
 
             if (!authorizationTask.Result.Succeeded)

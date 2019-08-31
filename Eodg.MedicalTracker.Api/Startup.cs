@@ -44,8 +44,7 @@ namespace Eodg.MedicalTracker.Api
             var displayName = Configuration["Authentication:DisplayName"];
             services.AddFirebaseAuthentication(schemeName, displayName);
 
-            var policyName = Configuration["Authorization:PolicyName"];
-            services.AddFirebaseAuthorization(policyName);
+            services.AddAuthorization();
 
             services.AddDbContext<MedicalTrackerDbContext>(options =>
             {
