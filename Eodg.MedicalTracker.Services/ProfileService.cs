@@ -1,8 +1,7 @@
-// using Eodg.MedicalTracker.Domain;
 using AutoMapper;
 using Eodg.MedicalTracker.Domain;
 using Eodg.MedicalTracker.Persistence;
-using Eodg.MedicalTracker.Services.Exceptions;
+using Eodg.MedicalTracker.Services.Data.Interfaces;
 using Eodg.MedicalTracker.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
@@ -16,87 +15,109 @@ namespace Eodg.MedicalTracker.Services
     // TODO: We'll need some try/catch and custom exceptions...
     // TODO: Sub-TODO... Make sure all methods are doing what they can to minimize DB calls (use better helpers)
     // TODO: Look into logging all of the queries...
-    public class ProfileService : ResourceService<Domain.Profile>, IProfileService, IOwnableResourceService
+    public class ProfileService : IProfileService, IOwnableResourceService
     {
-        public ProfileService(MedicalTrackerDbContext dbContext, IMapper mapper)
-            : base(dbContext, mapper)
-        {
+        private readonly IDataService<Domain.Profile> _profileDataService;
+        private readonly IDataService<Domain.MemberProfileRelationship> _memberProfileRelationshipDataService;
+        private readonly MedicalTrackerDbContext _dbContext;
+        private readonly IMapper _mapper;
+        private IDataService<Domain.Member> _memberDataService;
 
+        public ProfileService(
+            IDataService<Domain.Profile> profileDataService,
+            IDataService<Domain.MemberProfileRelationship> memberProfileRelationshipDataService,
+            IDataService<Domain.Member> memberDataService,
+            MedicalTrackerDbContext dbContext,
+            IMapper mapper)
+        {
+            _profileDataService = profileDataService;
+            _memberProfileRelationshipDataService = memberProfileRelationshipDataService;
+            _dbContext = dbContext;
+            _mapper = mapper;
+            _memberDataService = memberDataService;
         }
 
         public Dto.Profile Get(int profileId)
         {
-            var profile = GetEntity(profileId);
+            var profile = _profileDataService.GetSingle(profileId);
 
-            return Mapper.Map<Dto.Profile>(profile);
+            return _mapper.Map<Dto.Profile>(profile);
         }
 
         public async Task<Dto.Profile> GetAsync(int profileId)
         {
-            var profile = await GetPopulatedProfiles().SingleOrDefaultAsync(p => p.Id == profileId);
+            var profile = await _profileDataService.GetSingleAsync(profileId);
 
-            return Mapper.Map<Dto.Profile>(profile);
+            return _mapper.Map<Dto.Profile>(profile);
         }
 
         public IEnumerable<Dto.Profile> Get(
             string firebaseId,
             bool? isActive = true)
         {
-            var profiles =
-                DbContext
-                    .MemberProfileRelationships
-                    .Where(mp => mp.Member.FirebaseId == firebaseId)
-                    .Select(mp => mp.Profile);
+            // var profiles =
+            //     DbContext
+            //         .MemberProfileRelationships
+            //         .Where(mp => mp.Member.FirebaseId == firebaseId)
+            //         .Select(mp => mp.Profile);
 
-            if (isActive.HasValue)
-            {
-                profiles = profiles.Where(p => p.IsActive == isActive);
-            }
+            // var profiles = _memberProfileRelationshipDataService.Get(mp => mp.Member.FirebaseId == firebaseId).Select(mp => mp.Profile);
 
-            return profiles.Select(profile => Mapper.Map<Dto.Profile>(profile));
+            // if (isActive.HasValue)
+            // {
+            //     profiles = profiles.Where(p => p.IsActive == isActive);
+            // }
+
+            // return profiles.Select(profile => _mapper.Map<Dto.Profile>(profile));
+
+            throw new NotImplementedException();
         }
 
         public async Task<IEnumerable<Dto.Profile>> GetAsync(
             string firebaseId,
             bool? isActive = true)
         {
-            var domainProfiles =
-                DbContext
-                    .MemberProfileRelationships
-                    .Where(mp => mp.Member.FirebaseId == firebaseId)
-                    .Select(mp => mp.Profile);
+            // var domainProfiles =
+            //     _dbContext
+            //         .MemberProfileRelationships
+            //         .Where(mp => mp.Member.FirebaseId == firebaseId)
+            //         .Select(mp => mp.Profile);
 
-            if (isActive.HasValue)
-            {
-                domainProfiles = domainProfiles.Where(p => p.IsActive == isActive);
-            }
+            // if (isActive.HasValue)
+            // {
+            //     domainProfiles = domainProfiles.Where(p => p.IsActive == isActive);
+            // }
 
-            var profileList = await domainProfiles.ToListAsync();
+            // var profileList = await domainProfiles.ToListAsync();
 
-            return Mapper.Map<IEnumerable<Dto.Profile>>(profileList);
+            // return _mapper.Map<IEnumerable<Dto.Profile>>(profileList);
+
+            throw new NotImplementedException();
         }
 
         public IEnumerable<Dto.Member> GetOwners(int id)
         {
-            Domain.Profile profile;
+            // Domain.Profile profile;
 
-            try
-            {
-                profile =
-                    DbContext
-                        .Profiles
-                        .Include(p => p.MemberProfileRelationships)
-                            .ThenInclude(mp => mp.Member)
-                        .Single(p => p.Id == id);
-            }
-            catch (InvalidOperationException ex)
-            {
-                var message = $"{typeof(Dto.Member)} not found. Id: {id}. See InnerException for details...";
+            // try
+            // {
+            //     profile =
+            //         _dbContext
+            //             .Profiles
+            //             .Include(p => p.MemberProfileRelationships)
+            //                 .ThenInclude(mp => mp.Member)
+            //             .Single(p => p.Id == id);
+            // }
+            // catch (InvalidOperationException ex)
+            // {
+            //     var message = $"{typeof(Dto.Member)} not found. Id: {id}. See InnerException for details...";
 
-                throw new ResourceNotFoundException(message, ex);
-            }
+            //     throw new ResourceNotFoundException(message, ex);
+            // }
 
-            return profile.MemberProfileRelationships.Select(mp => Mapper.Map<Dto.Member>(mp.Member));
+            // return profile.MemberProfileRelationships.Select(mp => _mapper.Map<Dto.Member>(mp.Member));
+
+            throw new NotImplementedException();
         }
 
         public Dto.Profile Add(
@@ -106,12 +127,9 @@ namespace Eodg.MedicalTracker.Services
         {
             var profile = GenerateProfile(firebaseId, displayName, notes);
 
-            DbContext.Add(profile);
-            DbContext.SaveChanges();
+            _profileDataService.Add(profile);
 
-            AddOwner(profile.Id, firebaseId);
-
-            return Mapper.Map<Dto.Profile>(profile);
+            return _mapper.Map<Dto.Profile>(profile);
         }
 
         public async Task<Dto.Profile> AddAsync(
@@ -121,12 +139,9 @@ namespace Eodg.MedicalTracker.Services
         {
             var profile = GenerateProfile(firebaseId, displayName, notes);
 
-            DbContext.Add(profile);
-            await DbContext.SaveChangesAsync();
+            await _profileDataService.AddAsync(profile);
 
-            AddOwner(profile.Id, firebaseId);
-
-            return Mapper.Map<Dto.Profile>(profile);
+            return _mapper.Map<Dto.Profile>(profile);
         }
 
         public Dto.Profile Update(
@@ -135,17 +150,16 @@ namespace Eodg.MedicalTracker.Services
             string displayName,
             string notes)
         {
-            var profile = GetPopulatedProfiles().SingleOrDefault(p => p.Id == profileId);
+            var profile = _profileDataService.GetSingle(profileId);
 
             profile.DisplayName = displayName;
             profile.Notes = notes;
 
             profile.AddTimestamp(firebaseId);
 
-            DbContext.Update(profile);
-            DbContext.SaveChanges();
+            _profileDataService.Add(profile);
 
-            return Mapper.Map<Dto.Profile>(profile);
+            return _mapper.Map<Dto.Profile>(profile);
         }
 
         public async Task<Dto.Profile> UpdateAsync(
@@ -154,17 +168,16 @@ namespace Eodg.MedicalTracker.Services
             string displayName,
             string notes)
         {
-            var profile = await GetPopulatedProfiles().SingleOrDefaultAsync(p => p.Id == profileId);
+            var profile = await _profileDataService.GetSingleAsync(profileId);
 
             profile.DisplayName = displayName;
             profile.Notes = notes;
 
             profile.AddTimestamp(firebaseId);
 
-            DbContext.Update(profile);
-            await DbContext.SaveChangesAsync();
+            await _profileDataService.AddAsync(profile);
 
-            return Mapper.Map<Dto.Profile>(profile);
+            return _mapper.Map<Dto.Profile>(profile);
         }
 
         public Dto.Profile Activate(string firebaseId, int profileId)
@@ -189,48 +202,51 @@ namespace Eodg.MedicalTracker.Services
 
         public void Delete(int profileId)
         {
-            var profile = DbContext.Profiles.SingleOrDefault(p => p.Id == profileId);
+            var profile = _dbContext.Profiles.SingleOrDefault(p => p.Id == profileId);
 
-            DbContext.Remove(profile);
-            DbContext.SaveChanges();
+            _dbContext.Remove(profile);
+            _dbContext.SaveChanges();
         }
 
         public async Task DeleteAsync(int profileId)
         {
-            var profile = await DbContext.Profiles.SingleOrDefaultAsync(p => p.Id == profileId);
+            var profile = await _dbContext.Profiles.SingleOrDefaultAsync(p => p.Id == profileId);
 
-            DbContext.Remove(profile);
-            await DbContext.SaveChangesAsync();
+            _dbContext.Remove(profile);
+            await _dbContext.SaveChangesAsync();
         }
 
         #region Profile Ownership
 
         public Dto.Profile AddOwner(int profileId, string firebaseId)
         {
-            var member = DbContext.Members.Single(m => m.FirebaseId == firebaseId);
+            var member = _memberDataService.GetSingle(m => m.FirebaseId == firebaseId);
 
             return AddOwner(profileId, member.Id);
         }
 
         public async Task<Dto.Profile> AddOwnerAsync(int profileId, string firebaseId)
         {
-            var member = await DbContext.Members.SingleAsync(m => m.FirebaseId == firebaseId);
+            var member = await _memberDataService.GetSingleAsync(m => m.FirebaseId == firebaseId);
 
             return await AddOwnerAsync(profileId, member.Id);
         }
 
         public Dto.Profile AddOwner(int profileId, int memberId)
         {
+            var profile = _profileDataService.GetSingle(profileId);
+
             var memberProfileRelationship = new MemberProfileRelationship
             {
                 MemberId = memberId,
                 ProfileId = profileId
             };
 
-            DbContext.Add(memberProfileRelationship);
-            DbContext.SaveChanges();
+            profile.MemberProfileRelationships.Add(memberProfileRelationship);
 
-            return Get(profileId);
+            _profileDataService.Update(profile);
+
+            return _mapper.Map<Dto.Profile>(profile);
         }
 
         public async Task<Dto.Profile> AddOwnerAsync(int profileId, int memberId)
@@ -241,22 +257,22 @@ namespace Eodg.MedicalTracker.Services
                 ProfileId = profileId
             };
 
-            DbContext.Add(memberProfileRelationship);
-            await DbContext.SaveChangesAsync();
+            _dbContext.Add(memberProfileRelationship);
+            await _dbContext.SaveChangesAsync();
 
             return await GetAsync(profileId);
         }
 
         public Dto.Profile RemoveOwner(int profileId, string firebaseId)
         {
-            var member = DbContext.Members.Single(m => m.FirebaseId == firebaseId);
+            var member = _memberDataService.GetSingle(m => m.FirebaseId == firebaseId);
 
             return RemoveOwner(profileId, member.Id);
         }
 
         public async Task<Dto.Profile> RemoveOwnerAsync(int profileId, string firebaseId)
         {
-            var member = await DbContext.Members.SingleAsync(m => m.FirebaseId == firebaseId);
+            var member = await _memberDataService.GetSingleAsync(m => m.FirebaseId == firebaseId);
 
             return await RemoveOwnerAsync(profileId, member.Id);
         }
@@ -264,12 +280,12 @@ namespace Eodg.MedicalTracker.Services
         public Dto.Profile RemoveOwner(int profileId, int memberId)
         {
             var memberProfileRelationship =
-                DbContext
+                _dbContext
                     .MemberProfileRelationships
                     .Single(mp => mp.ProfileId == profileId && mp.MemberId == memberId);
 
-            DbContext.Remove(memberProfileRelationship);
-            DbContext.SaveChanges();
+            _dbContext.Remove(memberProfileRelationship);
+            _dbContext.SaveChanges();
 
             return Get(profileId);
         }
@@ -277,12 +293,12 @@ namespace Eodg.MedicalTracker.Services
         public async Task<Dto.Profile> RemoveOwnerAsync(int profileId, int memberId)
         {
             var memberProfileRelationship =
-                DbContext
+                _dbContext
                     .MemberProfileRelationships
                     .Single(mp => mp.ProfileId == profileId && mp.MemberId == memberId);
 
-            DbContext.Remove(memberProfileRelationship);
-            await DbContext.SaveChangesAsync();
+            _dbContext.Remove(memberProfileRelationship);
+            await _dbContext.SaveChangesAsync();
 
             return await GetAsync(profileId);
         }
@@ -295,10 +311,12 @@ namespace Eodg.MedicalTracker.Services
         private IIncludableQueryable<Domain.Profile, Domain.Member> GetPopulatedProfiles()
         {
             return
-                DbContext
+                _dbContext
                     .Profiles
                     .Include(p => p.MemberProfileRelationships)
                     .ThenInclude(mp => mp.Member);
+
+            // return _dbContext.Profiles.Include(p => p.MemberProfileRelationships).ThenInclude()
         }
 
         private Dto.Profile SetActivation(
@@ -306,15 +324,14 @@ namespace Eodg.MedicalTracker.Services
             int profileId,
             bool isActive)
         {
-            var profile = GetPopulatedProfiles().SingleOrDefault(p => p.Id == profileId);
+            var profile = _profileDataService.GetSingle(profileId);
 
             profile.IsActive = isActive;
             profile.AddTimestamp(firebaseId);
 
-            DbContext.Update(profile);
-            DbContext.SaveChanges();
+            _profileDataService.Update(profile);
 
-            return Mapper.Map<Dto.Profile>(profile);
+            return _mapper.Map<Dto.Profile>(profile);
         }
 
         private async Task<Dto.Profile> SetActivationAsync(
@@ -322,18 +339,17 @@ namespace Eodg.MedicalTracker.Services
             int profileId,
             bool isActive)
         {
-            var profile = await GetPopulatedProfiles().SingleOrDefaultAsync(p => p.Id == profileId);
+            var profile = await _profileDataService.GetSingleAsync(profileId);
 
             profile.IsActive = isActive;
             profile.AddTimestamp(firebaseId);
 
-            DbContext.Update(profile);
-            await DbContext.SaveChangesAsync();
+            await _profileDataService.UpdateAsync(profile);
 
-            return Mapper.Map<Dto.Profile>(profile);
+            return _mapper.Map<Dto.Profile>(profile);
         }
 
-        private static Domain.Profile GenerateProfile(
+        private Domain.Profile GenerateProfile(
             string firebaseId,
             string displayName,
             string notes)
@@ -346,6 +362,13 @@ namespace Eodg.MedicalTracker.Services
             };
 
             profile.AddTimestamp(firebaseId, true);
+
+            var memberProfileRelationship = new MemberProfileRelationship
+            {
+                MemberId = _memberDataService.GetSingle(m => m.FirebaseId == firebaseId).Id
+            };
+
+            profile.MemberProfileRelationships.Add(memberProfileRelationship);
 
             return profile;
         }

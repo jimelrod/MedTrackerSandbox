@@ -1,6 +1,8 @@
 using AutoMapper;
 using Eodg.MedicalTracker.Persistence;
 using Eodg.MedicalTracker.Services;
+using Eodg.MedicalTracker.Services.Data;
+using Eodg.MedicalTracker.Services.Data.Interfaces;
 using Eodg.MedicalTracker.Services.Interfaces;
 using Eodg.MedicalTracker.Services.Mapping;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +26,7 @@ namespace Eodg.MedicalTracker.Tests.Services
                 // .AddDbContext<MedicalTrackerDbContext>(options => options.UseSqlServer("Server=localhost;Database=MedicalTracker;Trusted_Connection=True;"))
                 .AddScoped<IMemberService, MemberService>()
                 .AddScoped<IProfileService, ProfileService>()
+                .AddScoped(typeof(IDataService<>), typeof(DataService<>))
                 .AddScoped<DataUtilityService, DataUtilityService>()
                 .AddAutoMapper(typeof(DomainDtoMappingProfile));
 

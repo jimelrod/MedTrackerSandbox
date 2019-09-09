@@ -1,6 +1,6 @@
-using AutoMapper;
 using Eodg.MedicalTracker.Domain.Interfaces;
 using Eodg.MedicalTracker.Persistence;
+using Eodg.MedicalTracker.Services.Data.Interfaces;
 using Eodg.MedicalTracker.Services.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -9,27 +9,27 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace Eodg.MedicalTracker.Services
+namespace Eodg.MedicalTracker.Services.Data
 {
-    public abstract class ResourceService<T> where
+    public class DataService<T> : IDataService<T> where
         T : class, IEntity
     {
-        public ResourceService(MedicalTrackerDbContext dbContext, IMapper mapper)
+        private readonly MedicalTrackerDbContext _dbContext;
+
+        public DataService(MedicalTrackerDbContext dbContext)
         {
-            DbContext = dbContext;
-            Mapper = mapper;
+            _dbContext = dbContext;
         }
 
-        protected MedicalTrackerDbContext DbContext { get; private set; }
-        protected IMapper Mapper { get; private set; }
+        #region Get
 
-        protected T GetEntity(int id)
+        public T GetSingle(int id)
         {
             T entity;
 
             try
             {
-                entity = DbContext.Set<T>().Single(e => e.Id == id);
+                entity = _dbContext.Set<T>().Single(e => e.Id == id);
             }
             catch (InvalidOperationException ex)
             {
@@ -41,13 +41,13 @@ namespace Eodg.MedicalTracker.Services
             return entity;
         }
 
-        protected T GetEntity(Expression<Func<T, bool>> predicate)
+        public T GetSingle(Expression<Func<T, bool>> predicate)
         {
             T entity;
 
             try
             {
-                entity = DbContext.Set<T>().Single(predicate);
+                entity = _dbContext.Set<T>().Single(predicate);
             }
             catch (InvalidOperationException ex)
             {
@@ -59,13 +59,13 @@ namespace Eodg.MedicalTracker.Services
             return entity;
         }
 
-        protected ICollection<T> GetEntities()
+        public ICollection<T> Get()
         {
             ICollection<T> entities;
 
             try
             {
-                entities = DbContext.Set<T>().ToList();
+                entities = _dbContext.Set<T>().ToList();
             }
             // TODO: Figure out if there will actually be an exception thrown...
             catch (InvalidOperationException ex)
@@ -78,13 +78,13 @@ namespace Eodg.MedicalTracker.Services
             return entities;
         }
 
-        protected ICollection<T> GetEntities(Expression<Func<T, bool>> predicate)
+        public ICollection<T> Get(Expression<Func<T, bool>> predicate)
         {
             ICollection<T> entities;
 
             try
             {
-                entities = DbContext.Set<T>().Where(predicate).ToList();
+                entities = _dbContext.Set<T>().Where(predicate).ToList();
             }
             // TODO: Figure out if there will actually be an exception thrown...
             catch (InvalidOperationException ex)
@@ -97,13 +97,13 @@ namespace Eodg.MedicalTracker.Services
             return entities;
         }
 
-        protected async Task<T> GetEntityAsync(int id)
+        public async Task<T> GetSingleAsync(int id)
         {
             T entity;
 
             try
             {
-                entity = await DbContext.Set<T>().SingleAsync(e => e.Id == id);
+                entity = await _dbContext.Set<T>().SingleAsync(e => e.Id == id);
             }
             catch (InvalidOperationException ex)
             {
@@ -115,13 +115,13 @@ namespace Eodg.MedicalTracker.Services
             return entity;
         }
 
-        protected async Task<T> GetEntityAsync(Expression<Func<T, bool>> predicate)
+        public async Task<T> GetSingleAsync(Expression<Func<T, bool>> predicate)
         {
             T entity;
 
             try
             {
-                entity = await DbContext.Set<T>().SingleAsync(predicate);
+                entity = await _dbContext.Set<T>().SingleAsync(predicate);
             }
             catch (InvalidOperationException ex)
             {
@@ -133,13 +133,13 @@ namespace Eodg.MedicalTracker.Services
             return entity;
         }
 
-        protected async Task<ICollection<T>> GetEntitiesAsync()
+        public async Task<ICollection<T>> GetAsync()
         {
             ICollection<T> entities;
 
             try
             {
-                entities = await DbContext.Set<T>().ToListAsync();
+                entities = await _dbContext.Set<T>().ToListAsync();
             }
             // TODO: Figure out if there will actually be an exception thrown...
             catch (InvalidOperationException ex)
@@ -152,13 +152,13 @@ namespace Eodg.MedicalTracker.Services
             return entities;
         }
 
-        protected async Task<ICollection<T>> GetEntitiesAsync(Expression<Func<T, bool>> predicate)
+        public async Task<ICollection<T>> GetAsync(Expression<Func<T, bool>> predicate)
         {
             ICollection<T> entities;
 
             try
             {
-                entities = await DbContext.Set<T>().Where(predicate).ToListAsync();
+                entities = await _dbContext.Set<T>().Where(predicate).ToListAsync();
             }
             // TODO: Figure out if there will actually be an exception thrown...
             catch (InvalidOperationException ex)
@@ -171,117 +171,111 @@ namespace Eodg.MedicalTracker.Services
             return entities;
         }
 
-        protected T AddEntity(T entity)
+        #endregion
+
+        public void Add(T entity)
         {
             try
             {
-                DbContext.Set<T>().Add(entity);
+                _dbContext.Set<T>().Add(entity);
 
-                DbContext.SaveChanges();
+                _dbContext.SaveChanges();
             }
             catch (Exception ex) when (
-                ex is InvalidOperationException || 
+                ex is InvalidOperationException ||
                 ex is DbUpdateException)
             {
-                DbContext.ResetContext();
+                _dbContext.ResetContext();
 
                 throw new ResourceNotAddedException(typeof(T), ex);
             }
-
-            return entity;
         }
 
-        protected async Task<T> AddEntityAsync(T entity)
+        public async Task AddAsync(T entity)
         {
             try
             {
-                DbContext.Set<T>().Add(entity);
+                _dbContext.Set<T>().Add(entity);
 
-                await DbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync();
             }
             catch (Exception ex) when (
-                ex is InvalidOperationException || 
+                ex is InvalidOperationException ||
                 ex is DbUpdateException)
             {
-                DbContext.ResetContext();
+                _dbContext.ResetContext();
 
                 throw new ResourceNotAddedException(typeof(T), ex);
             }
-
-            return entity;
         }
 
-        protected T UpdateEntity(T entity)
+        public void Update(T entity)
         {
             try
             {
-                DbContext.Update(entity);
+                _dbContext.Update(entity);
 
-                DbContext.SaveChanges();
+                _dbContext.SaveChanges();
             }
             catch (Exception ex) when (
-                ex is InvalidOperationException || 
+                ex is InvalidOperationException ||
                 ex is DbUpdateException)
             {
-                DbContext.ResetContext();
+                _dbContext.ResetContext();
 
                 throw new ResourceNotUpdatedException(entity.Id, typeof(T), ex);
             }
-
-            return entity;
         }
 
-        protected async Task<T> UpdateEntityAsync(T entity)
+        public async Task UpdateAsync(T entity)
         {
             try
             {
-                DbContext.Update(entity);
-                
-                await DbContext.SaveChangesAsync();
+                _dbContext.Update(entity);
+
+                await _dbContext.SaveChangesAsync();
             }
             catch (Exception ex) when (
-                ex is InvalidOperationException || 
+                ex is InvalidOperationException ||
                 ex is DbUpdateException)
             {
-                DbContext.ResetContext();
+                _dbContext.ResetContext();
 
                 throw new ResourceNotUpdatedException(entity.Id, typeof(T), ex);
             }
-
-            return entity;
         }
 
-        protected void DeleteEntity(T entity)
+        public void Delete(T entity)
         {
             try
             {
-                DbContext.Remove(entity);
+                _dbContext.Remove(entity);
 
-                DbContext.SaveChanges();
+                _dbContext.SaveChanges();
             }
             catch (Exception ex) when (
-                ex is InvalidOperationException || 
+                ex is InvalidOperationException ||
                 ex is DbUpdateException)
             {
-                DbContext.ResetContext();
+                _dbContext.ResetContext();
 
                 throw new ResourceNotDeletedException(entity.Id, typeof(T), ex);
             }
         }
 
-        protected async Task DeleteEntityAsync(T entity)
+        public async Task DeleteAsync(T entity)
         {
             try
             {
-                DbContext.Remove(entity);
-                
-                await DbContext.SaveChangesAsync();
+                _dbContext.Remove(entity);
+
+                await _dbContext.SaveChangesAsync();
             }
             catch (Exception ex) when (
-                ex is InvalidOperationException || 
+                ex is InvalidOperationException ||
                 ex is DbUpdateException)
             {
-                DbContext.ResetContext();
+                _dbContext.ResetContext();
 
                 throw new ResourceNotDeletedException(entity.Id, typeof(T), ex);
             }

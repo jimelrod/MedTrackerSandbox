@@ -3,6 +3,8 @@ using Eodg.MedicalTracker.Api.Authentication;
 using Eodg.MedicalTracker.Api.Authorization;
 using Eodg.MedicalTracker.Persistence;
 using Eodg.MedicalTracker.Services;
+using Eodg.MedicalTracker.Services.Data;
+using Eodg.MedicalTracker.Services.Data.Interfaces;
 using Eodg.MedicalTracker.Services.Interfaces;
 using Eodg.MedicalTracker.Services.Mapping;
 using FirebaseAdmin;
@@ -60,6 +62,7 @@ namespace Eodg.MedicalTracker.Api
             // TODO: Figure out a smart way to map services in the DI container...
             services.AddScoped<IMemberService, MemberService>();
             services.AddScoped<IProfileService, ProfileService>();
+            services.AddScoped(typeof(IDataService<>), typeof(DataService<>));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

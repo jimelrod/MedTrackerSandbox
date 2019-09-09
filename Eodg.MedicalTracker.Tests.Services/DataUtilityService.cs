@@ -39,6 +39,40 @@ namespace Eodg.MedicalTracker.Tests.Services
             });
 
             _dbContext.SaveChanges();
+
+            // TODO: Refactor this...
+            var profile = new Profile
+            {
+                DisplayName = "Profile Test 1",
+                Notes = "Here's some notes...",
+                IsActive = true,
+                CreatedBy = "FirebaseId1",
+                CreatedOn = DateTime.Now,
+                ModifiedBy = "FirebaseId1",
+                ModifiedOn = DateTime.Now
+            };
+
+            _dbContext.Profiles.Add(profile);
+
+            _dbContext.SaveChanges();
+
+            var relationships = new List<MemberProfileRelationship>
+            {
+                new MemberProfileRelationship
+                {
+                    MemberId = 1,
+                    ProfileId = profile.Id
+                },
+                new MemberProfileRelationship
+                {
+                    MemberId = 2,
+                    ProfileId = profile.Id
+                }
+            };
+
+            _dbContext.AddRange(relationships);
+
+            _dbContext.SaveChanges();
         }
 
         private static Member GenerateMember(int id, bool isActive)
