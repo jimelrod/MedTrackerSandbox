@@ -1,11 +1,9 @@
 using AutoMapper;
 using Eodg.MedicalTracker.Api.Authentication;
 using Eodg.MedicalTracker.Api.Authorization;
+using Eodg.MedicalTracker.Common;
 using Eodg.MedicalTracker.Persistence;
-using Eodg.MedicalTracker.Services;
 using Eodg.MedicalTracker.Services.Data;
-using Eodg.MedicalTracker.Services.Data.Interfaces;
-using Eodg.MedicalTracker.Services.Interfaces;
 using Eodg.MedicalTracker.Services.Mapping;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
@@ -59,10 +57,9 @@ namespace Eodg.MedicalTracker.Api
             services.AddSingleton<IConfiguration>(Configuration);
             services.AddSingleton<IAuthorizationHandler, MemberSpecificAuthorizationHandler>();
 
-            // TODO: Figure out a smart way to map services in the DI container...
-            services.AddScoped<IMemberService, MemberService>();
-            services.AddScoped<IProfileService, ProfileService>();
-            services.AddScoped(typeof(IDataService<>), typeof(DataService<>));
+            services.AutoRegisterDependencies(typeof(DataService<>), this.GetType());
+
+            services.AddAutoMapper(typeof(DomainDtoMappingProfile));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

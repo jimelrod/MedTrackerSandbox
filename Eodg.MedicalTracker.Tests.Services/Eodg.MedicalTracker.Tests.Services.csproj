@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Eodg.MedicalTracker.Common\Eodg.MedicalTracker.Common.csproj" />
     <ProjectReference Include="..\Eodg.MedicalTracker.Services\Eodg.MedicalTracker.Services.csproj" />
   </ItemGroup>
 

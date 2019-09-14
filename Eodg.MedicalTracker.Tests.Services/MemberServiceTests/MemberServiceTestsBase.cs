@@ -14,7 +14,7 @@ namespace Eodg.MedicalTracker.Tests.Services.MemberServiceTests
         
         protected IMemberService MemberService { get; private set; }
 
-        protected static Member GenerateMember()
+        protected static Member GenerateDomainMember()
         {
             return new Member
             {

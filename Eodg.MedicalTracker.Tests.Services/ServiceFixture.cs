@@ -1,9 +1,7 @@
 using AutoMapper;
 using Eodg.MedicalTracker.Persistence;
-using Eodg.MedicalTracker.Services;
+using Eodg.MedicalTracker.Common;
 using Eodg.MedicalTracker.Services.Data;
-using Eodg.MedicalTracker.Services.Data.Interfaces;
-using Eodg.MedicalTracker.Services.Interfaces;
 using Eodg.MedicalTracker.Services.Mapping;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,10 +22,8 @@ namespace Eodg.MedicalTracker.Tests.Services
                 })
                 // TODO: Remove following when done checking against live database...
                 // .AddDbContext<MedicalTrackerDbContext>(options => options.UseSqlServer("Server=localhost;Database=MedicalTracker;Trusted_Connection=True;"))
-                .AddScoped<IMemberService, MemberService>()
-                .AddScoped<IProfileService, ProfileService>()
-                .AddScoped(typeof(IDataService<>), typeof(DataService<>))
-                .AddScoped<DataUtilityService, DataUtilityService>()
+                
+                .AutoRegisterDependencies(typeof(DataService<>))
                 .AddAutoMapper(typeof(DomainDtoMappingProfile));
 
             ServiceProvider = serviceCollection.BuildServiceProvider();
@@ -48,7 +44,7 @@ namespace Eodg.MedicalTracker.Tests.Services
 
         private void SeedData()
         {
-            var dataUtilityService = ServiceProvider.GetService<DataUtilityService>();
+            var dataUtilityService = ServiceProvider.GetService<IDataUtilityService>();
 
             dataUtilityService.SeedData();
         }

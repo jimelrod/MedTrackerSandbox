@@ -16,7 +16,7 @@ namespace Eodg.MedicalTracker.Tests.Services.MemberServiceTests
         [Fact]
         public void Add_ValidDataWithDisplayName_ReturnsMember()
         {
-            var inputMember = GenerateMember();
+            var inputMember = GenerateDomainMember();
 
             var outputMember = MemberService.Add(inputMember.FirebaseId, inputMember.Email, inputMember.DisplayName);
 
@@ -29,7 +29,7 @@ namespace Eodg.MedicalTracker.Tests.Services.MemberServiceTests
         [Fact]
         public void Add_ValidDataWithoutDisplayName_ReturnsMember()
         {
-            var inputMember = GenerateMember();
+            var inputMember = GenerateDomainMember();
 
             var outputMember = MemberService.Add(inputMember.FirebaseId, inputMember.Email);
 
@@ -55,7 +55,7 @@ namespace Eodg.MedicalTracker.Tests.Services.MemberServiceTests
             // Detach existing entity from context
             Detach<Domain.Member>(m => m.FirebaseId == firebaseId);
 
-            var member = GenerateMember();
+            var member = GenerateDomainMember();
             member.FirebaseId = firebaseId;
 
             Assert.Throws<ResourceNotAddedException>(() =>
@@ -77,7 +77,7 @@ namespace Eodg.MedicalTracker.Tests.Services.MemberServiceTests
         {
             var firebaseId = $"{MemberProperty.FirebaseId.ToString()}{id}";
 
-            var member = GenerateMember();
+            var member = GenerateDomainMember();
             member.FirebaseId = firebaseId;
 
             Assert.Throws<ResourceNotAddedException>(() =>
@@ -102,7 +102,7 @@ namespace Eodg.MedicalTracker.Tests.Services.MemberServiceTests
             // Detach existing entity from context
             Detach<Domain.Member>(m => m.Email == email);
 
-            var member = GenerateMember();
+            var member = GenerateDomainMember();
             member.Email = email;
 
             Assert.Throws<ResourceNotAddedException>(() =>
@@ -124,7 +124,7 @@ namespace Eodg.MedicalTracker.Tests.Services.MemberServiceTests
         {
             var email = $"{MemberProperty.Email.ToString()}{id}";
 
-            var member = GenerateMember();
+            var member = GenerateDomainMember();
             member.Email = email;
 
             Assert.Throws<ResourceNotAddedException>(() =>
@@ -146,7 +146,7 @@ namespace Eodg.MedicalTracker.Tests.Services.MemberServiceTests
         {
             var firebaseId = $"{MemberProperty.FirebaseId.ToString()}{id}";
 
-            var member = GenerateMember();
+            var member = GenerateDomainMember();
             member.FirebaseId = firebaseId;
 
             try
@@ -155,7 +155,7 @@ namespace Eodg.MedicalTracker.Tests.Services.MemberServiceTests
             }
             catch (ResourceNotAddedException)
             {
-                member = GenerateMember();
+                member = GenerateDomainMember();
 
                 var successfulMember = MemberService.Add(member.FirebaseId, member.Email, member.DisplayName);
             }
@@ -168,7 +168,7 @@ namespace Eodg.MedicalTracker.Tests.Services.MemberServiceTests
         [Fact]
         public async Task AddAsync_ValidDataWithDisplayName_ReturnsMember()
         {
-            var inputMember = GenerateMember();
+            var inputMember = GenerateDomainMember();
 
             var outputMember = await MemberService.AddAsync(inputMember.FirebaseId, inputMember.Email, inputMember.DisplayName);
 
@@ -181,7 +181,7 @@ namespace Eodg.MedicalTracker.Tests.Services.MemberServiceTests
         [Fact]
         public async Task AddAsync_ValidDataWithoutDisplayName_ReturnsMember()
         {
-            var inputMember = GenerateMember();
+            var inputMember = GenerateDomainMember();
 
             var outputMember = await MemberService.AddAsync(inputMember.FirebaseId, inputMember.Email);
 
@@ -207,7 +207,7 @@ namespace Eodg.MedicalTracker.Tests.Services.MemberServiceTests
             // Detach existing entity from context
             Detach<Domain.Member>(m => m.FirebaseId == firebaseId);
 
-            var member = GenerateMember();
+            var member = GenerateDomainMember();
             member.FirebaseId = firebaseId;
 
             await Assert.ThrowsAsync<ResourceNotAddedException>(() =>
@@ -229,7 +229,7 @@ namespace Eodg.MedicalTracker.Tests.Services.MemberServiceTests
         {
             var firebaseId = $"{MemberProperty.FirebaseId.ToString()}{id}";
 
-            var member = GenerateMember();
+            var member = GenerateDomainMember();
             member.FirebaseId = firebaseId;
 
             await Assert.ThrowsAsync<ResourceNotAddedException>(() =>
@@ -254,7 +254,7 @@ namespace Eodg.MedicalTracker.Tests.Services.MemberServiceTests
             // Detach existing entity from context
             Detach<Domain.Member>(m => m.Email == email);
 
-            var member = GenerateMember();
+            var member = GenerateDomainMember();
             member.Email = email;
 
             await Assert.ThrowsAsync<ResourceNotAddedException>(() =>
@@ -276,7 +276,7 @@ namespace Eodg.MedicalTracker.Tests.Services.MemberServiceTests
         {
             var email = $"{MemberProperty.Email.ToString()}{id}";
 
-            var member = GenerateMember();
+            var member = GenerateDomainMember();
             member.Email = email;
 
             await Assert.ThrowsAsync<ResourceNotAddedException>(() =>
@@ -298,7 +298,7 @@ namespace Eodg.MedicalTracker.Tests.Services.MemberServiceTests
         {
             var firebaseId = $"{MemberProperty.FirebaseId.ToString()}{id}";
 
-            var member = GenerateMember();
+            var member = GenerateDomainMember();
             member.FirebaseId = firebaseId;
 
             try
@@ -307,7 +307,7 @@ namespace Eodg.MedicalTracker.Tests.Services.MemberServiceTests
             }
             catch (ResourceNotAddedException)
             {
-                member = GenerateMember();
+                member = GenerateDomainMember();
 
                 var successfulMember = await MemberService.AddAsync(member.FirebaseId, member.Email, member.DisplayName);
             }

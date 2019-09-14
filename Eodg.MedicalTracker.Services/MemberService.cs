@@ -9,10 +9,10 @@ namespace Eodg.MedicalTracker.Services
 {
     public class MemberService : IMemberService
     {
-        private readonly IDataService<Domain.Member> _memberDataService;
+        private readonly IMemberDataService _memberDataService;
         private readonly IMapper _mapper;
 
-        public MemberService(IDataService<Domain.Member> memberDataService, IMapper mapper)
+        public MemberService(IMemberDataService memberDataService, IMapper mapper)
         {
             _memberDataService = memberDataService;
             _mapper = mapper;
@@ -20,28 +20,28 @@ namespace Eodg.MedicalTracker.Services
 
         public Member Get(int id)
         {
-            var member = _memberDataService.GetSingle(id);
+            var member = _memberDataService.Get(id);
 
             return _mapper.Map<Member>(member);
         }
 
         public async Task<Member> GetAsync(int id)
         {
-            var member = await _memberDataService.GetSingleAsync(id);
+            var member = await _memberDataService.GetAsync(id);
 
             return _mapper.Map<Member>(member);
         }
 
         public Member Get(string firebaseId)
         {
-            var member = _memberDataService.GetSingle(m => m.FirebaseId == firebaseId);
+            var member = _memberDataService.GetByFirebaseId(firebaseId);
 
             return _mapper.Map<Member>(member);
         }
 
         public async Task<Member> GetAsync(string firebaseId)
         {
-            var member = await _memberDataService.GetSingleAsync(m => m.FirebaseId == firebaseId);
+            var member = await _memberDataService.GetByFirebaseIdAsync(firebaseId);
 
             return _mapper.Map<Member>(member);
         }
@@ -66,7 +66,7 @@ namespace Eodg.MedicalTracker.Services
 
         public Member Update(string firebaseId, string email, string displayName)
         {
-            var member = _memberDataService.GetSingle(m => m.FirebaseId == firebaseId);
+            var member = _memberDataService.GetByFirebaseId(firebaseId);
 
             member.Email = email;
             member.DisplayName = displayName;
@@ -80,7 +80,7 @@ namespace Eodg.MedicalTracker.Services
 
         public async Task<Member> UpdateAsync(string firebaseId, string email, string displayName)
         {
-            var member = await _memberDataService.GetSingleAsync(m => m.FirebaseId == firebaseId);
+            var member = await _memberDataService.GetByFirebaseIdAsync(firebaseId);
 
             member.Email = email;
             member.DisplayName = displayName;
@@ -93,7 +93,7 @@ namespace Eodg.MedicalTracker.Services
 
         public Member Update(int id, string email, string displayName)
         {
-            var member = _memberDataService.GetSingle(id);
+            var member = _memberDataService.Get(id);
 
             member.Email = email;
             member.DisplayName = displayName;
@@ -106,7 +106,7 @@ namespace Eodg.MedicalTracker.Services
 
         public async Task<Member> UpdateAsync(int id, string email, string displayName)
         {
-            var member = await _memberDataService.GetSingleAsync(id);
+            var member = await _memberDataService.GetAsync(id);
 
             member.Email = email;
             member.DisplayName = displayName;
@@ -118,7 +118,7 @@ namespace Eodg.MedicalTracker.Services
 
         public Member Deactivate(int id)
         {
-            var member = _memberDataService.GetSingle(id);
+            var member = _memberDataService.Get(id);
 
             SetActivation(member, false);
 
@@ -127,7 +127,7 @@ namespace Eodg.MedicalTracker.Services
 
         public async Task<Member> DeactivateAsync(int id)
         {
-            var member = await _memberDataService.GetSingleAsync(id);
+            var member = await _memberDataService.GetAsync(id);
 
             await SetActivationAsync(member, false);
 
@@ -136,7 +136,7 @@ namespace Eodg.MedicalTracker.Services
 
         public Member Deactivate(string firebaseId)
         {
-            var member = _memberDataService.GetSingle(m => m.FirebaseId == firebaseId);
+            var member = _memberDataService.GetByFirebaseId(firebaseId);
 
             SetActivation(member, false);
 
@@ -145,7 +145,7 @@ namespace Eodg.MedicalTracker.Services
 
         public async Task<Member> DeactivateAsync(string firebaseId)
         {
-            var member = await _memberDataService.GetSingleAsync(m => m.FirebaseId == firebaseId);
+            var member = await _memberDataService.GetByFirebaseIdAsync(firebaseId);
 
             await SetActivationAsync(member, false);
 
@@ -154,7 +154,7 @@ namespace Eodg.MedicalTracker.Services
 
         public Member Activate(int id)
         {
-            var member = _memberDataService.GetSingle(id);
+            var member = _memberDataService.Get(id);
 
             SetActivation(member, true);
 
@@ -163,7 +163,7 @@ namespace Eodg.MedicalTracker.Services
 
         public async Task<Member> ActivateAsync(int id)
         {
-            var member = await _memberDataService.GetSingleAsync(id);
+            var member = await _memberDataService.GetAsync(id);
 
             await SetActivationAsync(member, true);
 
@@ -172,7 +172,7 @@ namespace Eodg.MedicalTracker.Services
 
         public Member Activate(string firebaseId)
         {
-            var member = _memberDataService.GetSingle(m => m.FirebaseId == firebaseId);
+            var member = _memberDataService.GetByFirebaseId(firebaseId);
 
             SetActivation(member, true);
 
@@ -181,7 +181,7 @@ namespace Eodg.MedicalTracker.Services
 
         public async Task<Member> ActivateAsync(string firebaseId)
         {
-            var member = await _memberDataService.GetSingleAsync(m => m.FirebaseId == firebaseId);
+            var member = await _memberDataService.GetByFirebaseIdAsync(firebaseId);
 
             await SetActivationAsync(member, true);
 
@@ -190,28 +190,28 @@ namespace Eodg.MedicalTracker.Services
 
         public void Delete(int id)
         {
-            var member = _memberDataService.GetSingle(id);
+            var member = _memberDataService.Get(id);
 
             _memberDataService.Delete(member);
         }
 
         public async Task DeleteAsync(int id)
         {
-            var member = await _memberDataService.GetSingleAsync(id);
+            var member = await _memberDataService.GetAsync(id);
 
             await _memberDataService.DeleteAsync(member);
         }
 
         public void Delete(string firebaseId)
         {
-            var member = _memberDataService.GetSingle(m => m.FirebaseId == firebaseId);
+            var member = _memberDataService.GetByFirebaseId(firebaseId);
 
             _memberDataService.Delete(member);
         }
 
         public async Task DeleteAsync(string firebaseId)
         {
-            var member = await _memberDataService.GetSingleAsync(m => m.FirebaseId == firebaseId);
+            var member = await _memberDataService.GetByFirebaseIdAsync(firebaseId);
 
             await _memberDataService.DeleteAsync(member);
         }

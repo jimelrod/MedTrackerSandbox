@@ -14,22 +14,23 @@ namespace Eodg.MedicalTracker.Services.Data
     public class DataService<T> : IDataService<T> where
         T : class, IEntity
     {
-        private readonly MedicalTrackerDbContext _dbContext;
 
         public DataService(MedicalTrackerDbContext dbContext)
         {
-            _dbContext = dbContext;
+            DbContext = dbContext;
         }
+
+        protected MedicalTrackerDbContext DbContext { get; private set; }
 
         #region Get
 
-        public T GetSingle(int id)
+        public virtual T Get(int id)
         {
             T entity;
 
             try
             {
-                entity = _dbContext.Set<T>().Single(e => e.Id == id);
+                entity = DbContext.Set<T>().Single(e => e.Id == id);
             }
             catch (InvalidOperationException ex)
             {
@@ -41,69 +42,30 @@ namespace Eodg.MedicalTracker.Services.Data
             return entity;
         }
 
-        public T GetSingle(Expression<Func<T, bool>> predicate)
+        public virtual IEnumerable<T> Get()
+        {
+            return
+                DbContext
+                    .Set<T>()
+                    .ToList();
+        }
+
+        public virtual IEnumerable<T> Get(Expression<Func<T, bool>> predicate)
+        {
+            return
+                DbContext
+                    .Set<T>()
+                    .Where(predicate)
+                    .ToList();
+        }
+
+        public virtual async Task<T> GetAsync(int id)
         {
             T entity;
 
             try
             {
-                entity = _dbContext.Set<T>().Single(predicate);
-            }
-            catch (InvalidOperationException ex)
-            {
-                var message = $"{typeof(T)} not found. See InnerException for details...";
-
-                throw new ResourceNotFoundException(message, ex);
-            }
-
-            return entity;
-        }
-
-        public ICollection<T> Get()
-        {
-            ICollection<T> entities;
-
-            try
-            {
-                entities = _dbContext.Set<T>().ToList();
-            }
-            // TODO: Figure out if there will actually be an exception thrown...
-            catch (InvalidOperationException ex)
-            {
-                var message = $"{typeof(T)} not found. See InnerException for details...";
-
-                throw new ResourceNotFoundException(message, ex);
-            }
-
-            return entities;
-        }
-
-        public ICollection<T> Get(Expression<Func<T, bool>> predicate)
-        {
-            ICollection<T> entities;
-
-            try
-            {
-                entities = _dbContext.Set<T>().Where(predicate).ToList();
-            }
-            // TODO: Figure out if there will actually be an exception thrown...
-            catch (InvalidOperationException ex)
-            {
-                var message = $"{typeof(T)} not found. See InnerException for details...";
-
-                throw new ResourceNotFoundException(message, ex);
-            }
-
-            return entities;
-        }
-
-        public async Task<T> GetSingleAsync(int id)
-        {
-            T entity;
-
-            try
-            {
-                entity = await _dbContext.Set<T>().SingleAsync(e => e.Id == id);
+                entity = await DbContext.Set<T>().SingleAsync(e => e.Id == id);
             }
             catch (InvalidOperationException ex)
             {
@@ -115,167 +77,130 @@ namespace Eodg.MedicalTracker.Services.Data
             return entity;
         }
 
-        public async Task<T> GetSingleAsync(Expression<Func<T, bool>> predicate)
+        public virtual async Task<IEnumerable<T>> GetAsync()
         {
-            T entity;
-
-            try
-            {
-                entity = await _dbContext.Set<T>().SingleAsync(predicate);
-            }
-            catch (InvalidOperationException ex)
-            {
-                var message = $"{typeof(T)} not found. See InnerException for details...";
-
-                throw new ResourceNotFoundException(message, ex);
-            }
-
-            return entity;
+            return
+                await
+                    DbContext
+                        .Set<T>()
+                        .ToListAsync();
         }
 
-        public async Task<ICollection<T>> GetAsync()
+        public virtual async Task<IEnumerable<T>> GetAsync(Expression<Func<T, bool>> predicate)
         {
-            ICollection<T> entities;
-
-            try
-            {
-                entities = await _dbContext.Set<T>().ToListAsync();
-            }
-            // TODO: Figure out if there will actually be an exception thrown...
-            catch (InvalidOperationException ex)
-            {
-                var message = $"{typeof(T)} not found. See InnerException for details...";
-
-                throw new ResourceNotFoundException(message, ex);
-            }
-
-            return entities;
-        }
-
-        public async Task<ICollection<T>> GetAsync(Expression<Func<T, bool>> predicate)
-        {
-            ICollection<T> entities;
-
-            try
-            {
-                entities = await _dbContext.Set<T>().Where(predicate).ToListAsync();
-            }
-            // TODO: Figure out if there will actually be an exception thrown...
-            catch (InvalidOperationException ex)
-            {
-                var message = $"{typeof(T)} not found. See InnerException for details...";
-
-                throw new ResourceNotFoundException(message, ex);
-            }
-
-            return entities;
+            return
+                await
+                    DbContext
+                        .Set<T>()
+                        .Where(predicate)
+                        .ToListAsync();
         }
 
         #endregion
 
-        public void Add(T entity)
+        public virtual void Add(T entity)
         {
             try
             {
-                _dbContext.Set<T>().Add(entity);
+                DbContext.Set<T>().Add(entity);
 
-                _dbContext.SaveChanges();
+                DbContext.SaveChanges();
             }
             catch (Exception ex) when (
                 ex is InvalidOperationException ||
                 ex is DbUpdateException)
             {
-                _dbContext.ResetContext();
+                DbContext.ResetContext();
 
                 throw new ResourceNotAddedException(typeof(T), ex);
             }
         }
 
-        public async Task AddAsync(T entity)
+        public virtual async Task AddAsync(T entity)
         {
             try
             {
-                _dbContext.Set<T>().Add(entity);
+                DbContext.Set<T>().Add(entity);
 
-                await _dbContext.SaveChangesAsync();
+                await DbContext.SaveChangesAsync();
             }
             catch (Exception ex) when (
                 ex is InvalidOperationException ||
                 ex is DbUpdateException)
             {
-                _dbContext.ResetContext();
+                DbContext.ResetContext();
 
                 throw new ResourceNotAddedException(typeof(T), ex);
             }
         }
 
-        public void Update(T entity)
+        public virtual void Update(T entity)
         {
             try
             {
-                _dbContext.Update(entity);
+                DbContext.Update(entity);
 
-                _dbContext.SaveChanges();
+                DbContext.SaveChanges();
             }
             catch (Exception ex) when (
                 ex is InvalidOperationException ||
                 ex is DbUpdateException)
             {
-                _dbContext.ResetContext();
+                DbContext.ResetContext();
 
                 throw new ResourceNotUpdatedException(entity.Id, typeof(T), ex);
             }
         }
 
-        public async Task UpdateAsync(T entity)
+        public virtual async Task UpdateAsync(T entity)
         {
             try
             {
-                _dbContext.Update(entity);
+                DbContext.Update(entity);
 
-                await _dbContext.SaveChangesAsync();
+                await DbContext.SaveChangesAsync();
             }
             catch (Exception ex) when (
                 ex is InvalidOperationException ||
                 ex is DbUpdateException)
             {
-                _dbContext.ResetContext();
+                DbContext.ResetContext();
 
                 throw new ResourceNotUpdatedException(entity.Id, typeof(T), ex);
             }
         }
 
-        public void Delete(T entity)
+        public virtual void Delete(T entity)
         {
             try
             {
-                _dbContext.Remove(entity);
+                DbContext.Remove(entity);
 
-                _dbContext.SaveChanges();
+                DbContext.SaveChanges();
             }
             catch (Exception ex) when (
                 ex is InvalidOperationException ||
                 ex is DbUpdateException)
             {
-                _dbContext.ResetContext();
+                DbContext.ResetContext();
 
                 throw new ResourceNotDeletedException(entity.Id, typeof(T), ex);
             }
         }
 
-        public async Task DeleteAsync(T entity)
+        public virtual async Task DeleteAsync(T entity)
         {
             try
             {
-                _dbContext.Remove(entity);
+                DbContext.Remove(entity);
 
-                await _dbContext.SaveChangesAsync();
+                await DbContext.SaveChangesAsync();
             }
             catch (Exception ex) when (
                 ex is InvalidOperationException ||
                 ex is DbUpdateException)
             {
-                _dbContext.ResetContext();
+                DbContext.ResetContext();
 
                 throw new ResourceNotDeletedException(entity.Id, typeof(T), ex);
             }

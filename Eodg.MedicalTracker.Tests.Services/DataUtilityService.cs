@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Eodg.MedicalTracker.Tests.Services
 {
-    public class DataUtilityService
+    public class DataUtilityService : IDataUtilityService
     {
         #region Seed Dictionaries
 
