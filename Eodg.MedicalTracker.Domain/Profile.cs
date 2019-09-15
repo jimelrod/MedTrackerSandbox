@@ -9,6 +9,7 @@ namespace Eodg.MedicalTracker.Domain
         public Profile()
         {
             MemberProfileRelationships = new HashSet<MemberProfileRelationship>();
+            ProfileMedications = new HashSet<ProfileMedication>();
         }
 
         public int Id { get; set; }
@@ -21,5 +22,6 @@ namespace Eodg.MedicalTracker.Domain
         public DateTime ModifiedOn { get; set; }
 
         public ICollection<MemberProfileRelationship> MemberProfileRelationships { get; set; }
+        public ICollection<ProfileMedication> ProfileMedications { get; set; }
     }
 }

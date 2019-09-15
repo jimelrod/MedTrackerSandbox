@@ -20,17 +20,21 @@ namespace Eodg.MedicalTracker.Persistence.Configuration
                 .IsRequired(false);
 
             builder
-                .Property(p => p.CreatedBy)
-                .IsRequired();
+                .ApplyActivableConfiguration();
 
             builder
-                .Property(p => p.ModifiedBy)
-                .IsRequired();
+                .ApplyTimestampableConfiguration();
 
             builder
                 .HasMany(p => p.MemberProfileRelationships)
                 .WithOne(mp => mp.Profile)
                 .HasForeignKey(mp => mp.ProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder
+                .HasMany(p => p.ProfileMedications)
+                .WithOne(pm => pm.Profile)
+                .HasForeignKey(pm => pm.ProfileId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

@@ -31,6 +31,9 @@ namespace Eodg.MedicalTracker.Persistence.Configuration
                 .IsRequired(false);
 
             builder
+                .ApplyActivableConfiguration();
+
+            builder
                 .HasMany(m => m.MemberProfileRelationships)
                 .WithOne(mp => mp.Member)
                 .HasForeignKey(mp => mp.MemberId)
