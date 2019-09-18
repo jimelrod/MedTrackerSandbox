@@ -9,7 +9,7 @@ namespace Eodg.MedicalTracker.Dto
 
         public string Notes { get; set; }
         public int DoseQuantity { get; set; }
-        public int DoseFrequencyInHours { get; set; }
+        public int? DoseFrequencyInHours { get; set; }
 
         public bool IsActive { get; set; }
         public string CreatedBy { get; set; }

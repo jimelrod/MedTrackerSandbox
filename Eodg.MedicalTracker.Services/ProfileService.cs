@@ -116,7 +116,7 @@ namespace Eodg.MedicalTracker.Services
 
             profile.AddTimestamp(firebaseId);
 
-            _profileDataService.Add(profile);
+            _profileDataService.Update(profile);
 
             return _mapper.Map<Dto.Profile>(profile);
         }
@@ -134,29 +134,37 @@ namespace Eodg.MedicalTracker.Services
 
             profile.AddTimestamp(firebaseId);
 
-            await _profileDataService.AddAsync(profile);
+            await _profileDataService.UpdateAsync(profile);
 
             return _mapper.Map<Dto.Profile>(profile);
         }
 
         public Dto.Profile Activate(string firebaseId, int profileId)
         {
-            return SetActivation(firebaseId, profileId, true);
+            var profile = _profileDataService.SetActivation(firebaseId, profileId, true);
+
+            return _mapper.Map<Dto.Profile>(profile);
         }
 
         public async Task<Dto.Profile> ActivateAsync(string firebaseId, int profileId)
         {
-            return await SetActivationAsync(firebaseId, profileId, true);
+            var profile = await _profileDataService.SetActivationAsync(firebaseId, profileId, true);
+
+            return _mapper.Map<Dto.Profile>(profile);
         }
 
         public Dto.Profile Deactivate(string firebaseId, int profileId)
         {
-            return SetActivation(firebaseId, profileId, false);
+            var profile = _profileDataService.SetActivation(firebaseId, profileId, false);
+
+            return _mapper.Map<Dto.Profile>(profile);
         }
 
         public async Task<Dto.Profile> DeactivateAsync(string firebaseId, int profileId)
         {
-            return await SetActivationAsync(firebaseId, profileId, false);
+            var profile = await _profileDataService.SetActivationAsync(firebaseId, profileId, false);
+
+            return _mapper.Map<Dto.Profile>(profile);
         }
 
         public void Delete(int profileId)
@@ -261,38 +269,6 @@ namespace Eodg.MedicalTracker.Services
 
         #endregion
 
-        #region Helper Methods
-
-        private Dto.Profile SetActivation(
-             string firebaseId,
-             int profileId,
-             bool isActive)
-        {
-            var profile = _profileDataService.Get(profileId);
-
-            profile.IsActive = isActive;
-            profile.AddTimestamp(firebaseId);
-
-            _profileDataService.Update(profile);
-
-            return _mapper.Map<Dto.Profile>(profile);
-        }
-
-        private async Task<Dto.Profile> SetActivationAsync(
-            string firebaseId,
-            int profileId,
-            bool isActive)
-        {
-            var profile = await _profileDataService.GetAsync(profileId);
-
-            profile.IsActive = isActive;
-            profile.AddTimestamp(firebaseId);
-
-            await _profileDataService.UpdateAsync(profile);
-
-            return _mapper.Map<Dto.Profile>(profile);
-        }
-
         private Domain.Profile GenerateProfile(
             string firebaseId,
             string displayName,
@@ -316,7 +292,5 @@ namespace Eodg.MedicalTracker.Services
 
             return profile;
         }
-
-        #endregion
     }
 }

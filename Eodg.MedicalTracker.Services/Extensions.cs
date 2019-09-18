@@ -1,5 +1,9 @@
+using Eodg.MedicalTracker.Domain;
+using Eodg.MedicalTracker.Domain.Interfaces;
+using Eodg.MedicalTracker.Services.Data.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Eodg.MedicalTracker.Services
 {
@@ -24,6 +28,32 @@ namespace Eodg.MedicalTracker.Services
                 .Where(e => e.Entity != null)
                 .ToList()
                 .ForEach(e => e.State = EntityState.Detached);
+        }
+
+        public static T SetActivation<T>(this IDataService<T> dataService, string firebaseId, int id, bool isActive)
+            where T : class, IEntity, IActivable, ITimestampable
+        {
+            var entity = dataService.Get(id);
+
+            entity.IsActive = isActive;
+            entity.AddTimestamp(firebaseId);
+
+            dataService.Update(entity);
+
+            return entity;
+        }
+
+        public static async Task<T> SetActivationAsync<T>(this IDataService<T> dataService, string firebaseId, int id, bool isActive)
+            where T : class, IEntity, IActivable, ITimestampable
+        {
+            var entity = await dataService.GetAsync(id);
+
+            entity.IsActive = isActive;
+            entity.AddTimestamp(firebaseId);
+
+            await dataService.UpdateAsync(entity);
+
+            return entity;
         }
     }
 }
